@@ -1,0 +1,105 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Example Corp//ICS DTSTART/DTEND/DURATION Test//EN
+
+#################################################
+# 1. UTC event (DTSTART + DTEND)
+#################################################
+BEGIN:VEVENT
+UID:utc-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART:20260414T180000Z
+DTEND:20260414T190000Z
+SUMMARY:UTC Event with DTEND
+END:VEVENT
+
+#################################################
+# 2. UTC event with DURATION
+#################################################
+BEGIN:VEVENT
+UID:utc-duration-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART:20260414T200000Z
+DURATION:PT1H30M
+SUMMARY:UTC Event with Duration
+END:VEVENT
+
+#################################################
+# 3. TZID event with DTEND
+#################################################
+BEGIN:VEVENT
+UID:tz-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART;TZID=America/Denver:20260414T090000
+DTEND;TZID=America/Denver:20260414T100000
+SUMMARY:Denver Event DTEND
+END:VEVENT
+
+#################################################
+# 4. TZID event with DURATION
+#################################################
+BEGIN:VEVENT
+UID:tz-duration-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART;`TZID`=America/New_York:20260414T090000
+DURATION:PT2H
+SUMMARY:NY Event Duration
+END:VEVENT
+
+#################################################
+# 5. Floating time + DURATION
+#################################################
+BEGIN:VEVENT
+UID:floating-duration-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART:20260414T090000
+DURATION:PT45M
+SUMMARY:Floating Event with Duration
+END:VEVENT
+
+#################################################
+# 6. All-day event (DTEND form)
+#################################################
+BEGIN:VEVENT
+UID:allday-1@example.com
+DTSTAMP:20260414T120000Z
+DTSTART;VALUE=DATE:20260414
+DTEND;VALUE=DATE:20260415
+SUMMARY:All Day Event (DTEND)
+END:VEVENT
+
+#################################################
+# 7. All-day event (no DTEND, no DURATION)
+# → implicit 1 day
+#################################################
+BEGIN:VEVENT
+UID:allday-2@example.com
+DTSTAMP:20260414T120000Z
+DTSTART;VALUE=DATE:20260420
+SUMMARY:All Day Implicit
+END:VEVENT
+
+#################################################
+# 8. All-day event with DURATION (rare but valid in some feeds)
+#################################################
+BEGIN:VEVENT
+UID:allday-duration@example.com
+DTSTAMP:20260414T120000Z
+DTSTART;VALUE=DATE:20260422
+DURATION:P1D
+SUMMARY:All Day with Duration
+END:VEVENT
+
+#################################################
+# 9. Edge case: DTEND overrides implied duration
+#################################################
+BEGIN:VEVENT
+UID:override-example@example.com
+DTSTAMP:20260414T120000Z
+DTSTART:20260414T120000Z
+DURATION:PT2H
+DTEND:20260414T150000Z
+SUMMARY:DTEND overrides DURATION
+END:VEVENT
+
+END:VCALENDAR
