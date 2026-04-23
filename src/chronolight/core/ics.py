@@ -42,18 +42,15 @@ def parse_ics_line(line: str):
 
     return name, value.strip(), params
 
-def add_if_near(now, dtstart, dtend, duration, uid, ignore_uid, events):
+def add_if_near(now, dtstart, dtend, duration, uid, events):
     # Calculate end from duration if end is None
     dtend = find_end(dtstart, dtend, duration)
 
-    if is_near_or_during(now, dtstart, dtend, 90) and uid not in ignore_uid:
+    if is_near_or_during(now, dtstart, dtend, 90):
         events.append(EventTuple(dtstart, dtend, uid))
 
 
-def find_near_events(now, lines, default_tz, ignore_uid=None):
-    if ignore_uid is None:
-        ignore_uid = []
-
+def find_near_events(now, lines, default_tz):
     in_event = False
     dtstart = dtend = duration = uid = rrule = None
     events = []
@@ -97,11 +94,11 @@ def find_near_events(now, lines, default_tz, ignore_uid=None):
 
         elif field == "END" and value == "VEVENT":
             if dtstart:
-                add_if_near(now, dtstart, dtend, duration, uid, ignore_uid, events)
+                add_if_near(now, dtstart, dtend, duration, uid, events)
                 if rrule:
                     event = recurring_event(now, dtstart, dtend, duration, rrule, {})
                     if event:
-                        add_if_near(now, event[0], event[1], None, uid, ignore_uid, events)
+                        add_if_near(now, event[0], event[1], None, uid, events)
 
             in_event = False
 

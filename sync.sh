@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SRC_DIR="./src/chronolight"
+LIB_DIR="./board_libs"
 CODE_FILE="./board_code/code.py"
 
 # Auto-detect CIRCUITPY mount (more reliable than hardcoding)
@@ -22,6 +23,12 @@ rsync -av \
     --exclude "*.pyc" \
     --exclude ".git/" \
     "$SRC_DIR" "$DEST/"
+
+rsync -av \
+    --exclude "__pycache__/" \
+    --exclude "*.pyc" \
+    --exclude ".git/" \
+    "$LIB_DIR/" "$DEST/lib"
 
 echo "Copying code.py (atomic replace)..."
 

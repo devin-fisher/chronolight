@@ -9,7 +9,7 @@ import requests
 from chronolight.core.classification import ScheduleClassification
 from chronolight.core.models import InputTuple
 from chronolight.core.models_utils import state_to_str
-from chronolight.platform.interface import Hardware
+from chronolight.hardware.interface import Hardware
 
 
 def _is_key_pressed():

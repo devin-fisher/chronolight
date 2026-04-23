@@ -2,7 +2,7 @@ class Hardware:
     """
     Abstract interface for interacting with underlying hardware and system services.
 
-    This class defines the contract that platform-specific implementations must fulfill.
+    This class defines the contract that hardware-specific implementations must fulfill.
     It separates core application logic from hardware/OS concerns such as time, network,
     input, and rendering.
 
@@ -15,7 +15,7 @@ class Hardware:
 
     def descr(self):
         """
-        Return a human-readable description of the hardware/platform.
+        Return a human-readable description of the hardware/hardware.
 
         Examples:
             - "Raspberry Pi 4"

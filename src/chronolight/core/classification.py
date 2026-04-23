@@ -10,9 +10,9 @@ class Colors:
 
     IDLE = (0, 64, 0)
 
-    UPCOMING = (255, 255, 0)
+    UPCOMING = (255, 100, 0)
 
-    SOON = (255, 255, 0)
+    SOON = (255, 100, 0)
 
     STARTING = (255, 0, 0)
 
@@ -120,6 +120,7 @@ class ScheduleClassification:
         classifier: "ScheduleClassification",
         now,
         events,
+        ignore_uids=None
     ):
         """
         Determine the most important event state.
@@ -128,18 +129,31 @@ class ScheduleClassification:
             classifier: ScheduleClassification instance
             now: current datetime
             events: iterable of events with .start, .end, .uid
+            ignore_uids: uid that should be ignored in clasification
 
         Returns:
             (state, uid) of highest priority event, or (IDLE, None)
         """
+
+        def _classify(event):
+            if event.uid in ignore_uids:
+                return ScheduleClassification.IDLE
+
+            return classifier.classify_event(now, event.start, event.end)
+
+        if ignore_uids is None:
+            ignore_uids = []
 
         if not events:
             return ScheduleClassification.IDLE, None
 
         most_important_event = max(
             events,
-            key=lambda e: classifier.classify_event(now, e.start, e.end),
+            key=_classify,
         )
+
+        if most_important_event.uid in ignore_uids:
+            return ScheduleClassification.IDLE, None
 
         state: int = classifier.classify_event(
             now,
