@@ -3,12 +3,14 @@ try:
 except ImportError:
     from adafruit_datetime import timedelta
 
-from chronolight.core.ical.datetime import is_date
+from chronolight.core.ical.datetime import is_date, to_date
 
 
 # -------------------------
 # Time window helpers
 # -------------------------
+def greater_than_minutes(start, now, minutes: int) -> bool:
+    return (now - start) >= timedelta(minutes=minutes)
 
 def within(now, start, end):
     """True if now is within the start and end period"""
@@ -62,3 +64,7 @@ def is_near_or_during(now, start, end, threshold_minutes: int) -> bool:
     in_event = within(now, start, end)
 
     return near_start or in_event
+
+
+def day_offset(start, offset_in_days):
+    return to_date(start) + timedelta(days=offset_in_days)

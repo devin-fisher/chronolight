@@ -4,4 +4,6 @@ StateTuple = namedtuple("State", ["classification", "uid", "ignored_uids", "near
 
 InputTuple = namedtuple("Input", ["ignore"])
 
-EventTuple = namedtuple("Event", ["start", "end", "uid"])
+EventTuple = namedtuple("Event", ["start", "end", "uid", "summary", "cal_name"])
+
+IgnoreTuple = namedtuple("Ignore", ["uid", "timestamp"])

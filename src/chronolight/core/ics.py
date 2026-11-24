@@ -42,17 +42,19 @@ def parse_ics_line(line: str):
 
     return name, value.strip(), params
 
-def add_if_near(now, dtstart, dtend, duration, uid, events):
+def add_if_near(now, dtstart, dtend, duration, uid, events, summary, cal_name):
     # Calculate end from duration if end is None
     dtend = find_end(dtstart, dtend, duration)
 
     if is_near_or_during(now, dtstart, dtend, 90):
-        events.append(EventTuple(dtstart, dtend, uid))
+        print(f"[ICS PARSER] Found near event: {dtstart} - {dtend} : {uid} - {summary}")
+        events.append(EventTuple(dtstart, dtend, uid, summary, cal_name))
 
 
 def find_near_events(now, lines, default_tz):
+    cal_name = "Unknown"
     in_event = False
-    dtstart = dtend = duration = uid = rrule = None
+    dtstart = dtend = summary = status = sequence = duration = uid = rrule = None
     events = []
 
     it = iter(lines)
@@ -85,28 +87,36 @@ def find_near_events(now, lines, default_tz):
         if not line.strip():
             continue
 
-        field, value, params = parse_ics_line(line)
+        field, value, params = parse_ics_line(str(line))
 
         # Event boundaries
         if field == "BEGIN" and value == "VEVENT":
             in_event = True
-            dtstart = dtend = duration = uid = rrule = None
+            dtstart = dtend = summary = status = sequence = duration = uid = rrule = None
 
         elif field == "END" and value == "VEVENT":
             if dtstart:
-                add_if_near(now, dtstart, dtend, duration, uid, events)
+                add_if_near(now, dtstart, dtend, duration, uid, events, summary, cal_name)
                 if rrule:
                     event = recurring_event(now, dtstart, dtend, duration, rrule, {})
                     if event:
-                        add_if_near(now, event[0], event[1], None, uid, events)
+                        add_if_near(now, event[0], event[1], None, uid, events, summary, cal_name)
 
             in_event = False
 
+        elif field == "X-WR-CALNAME":
+            cal_name = value
         elif in_event:
             if field == "DTSTART":
                 dtstart = parse_datatime(value, default_tz, params.get("TZID", None))
             elif field == "DTEND":
                 dtend = parse_datatime(value, default_tz, params.get("TZID", None))
+            elif field == "SUMMARY":
+                summary = value
+            elif field == "STATUS":
+                status = value
+            elif field == "SEQUENCE":
+                sequence = value
             elif field == "DURATION":
                 duration = parse_duration(value, params)
             elif field == "UID":

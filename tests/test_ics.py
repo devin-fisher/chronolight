@@ -2,7 +2,6 @@ import unittest
 from datetime import datetime, timezone
 
 from chronolight.core.ics import find_near_events
-from chronolight.core.models import EventTuple
 
 
 # ---------------------------------------------------------
@@ -438,6 +437,38 @@ class TestUnsupportedExDate(unittest.TestCase):
         # IMPORTANT: we do NOT expect filtering yet
         # so we only ensure deterministic output
         self.assertTrue(len(events) >= 0)
+
+
+    def test_recurance_count(self):
+        lines = [
+            "BEGIN:VEVENT",
+            "DTSTART;TZID=America/Denver:20260707T130000",
+            "DTEND;TZID=America/Denver:20260707T140000",
+            "RRULE:FREQ=WEEKLY;WKST=SU;COUNT=4;BYDAY=TU",
+            "EXDATE;TZID=America/Denver:20260721T130000",
+            "EXDATE;TZID=America/Denver:20260728T130000",
+            "DTSTAMP:20261124T174254Z",
+            "ORGANIZER;CN=Lara Leavitt:mailto:lara.leavitt@imatsolutions.com",
+            "UID:3flqn1ajg8e8568cvnn2rltms1@google.com",
+            "X-GOOGLE-CONFERENCE:https://meet.google.com/hhn-uknm-gtr",
+            "CREATED:20260702T154242Z",
+            "DESCRIPTION:Join with Google Meet: https://meet.google.com/hhn-uknm-gtr\nOr",
+            "  dial: (US) +1 574-404-3374 PIN: 314377742#\nMore phone numbers: https://te",
+            " l.meet/hhn-uknm-gtr?pin=6635817974804&hs=7\n\nLearn more about Meet at: htt",
+            " ps://support.google.com/a/users/answer/9282720",
+            "LAST-MODIFIED:20260728T171813Z",
+            "SEQUENCE:2",
+            "STATUS:CONFIRMED",
+            "SUMMARY:Design - Firely integration",
+            "TRANSP:OPAQUE",
+            "END:VEVENT",
+        ]
+
+        # events = find_near_events(datetime(2026, 7, 7, 19, 0, tzinfo=timezone.utc), lines, default_tz=None)
+        events = find_near_events(datetime(2026, 11, 24, 18, 10, 14, 469737, tzinfo=timezone.utc), lines, default_tz=None)
+
+        self.assertTrue(len(events) == 0)
+
 
 # ---------------------------------------------------------
 # RUN

@@ -201,48 +201,57 @@ class Embedded:
     # ------------------------------------------------------------------
 
     def streamed_calendar(self, url):
+        self._log("Connected:" + str(wifi.radio.connected))
+        self._log("IP:" + str(wifi.radio.ipv4_address))
+
         if not self._session:
             raise RuntimeError("Network not initialized")
 
-        self._log("Processing calendar")
+        self._log("Requesting calendar")
 
         response = self._session.get(url, stream=True)
 
+        self._log("Streaming calendar")
+
         try:
-            buffer = b""
+            buffer = bytearray()
 
             chunk_count = 0
-            for chunk in response.iter_content(chunk_size=128):
+
+            for chunk in response.iter_content(chunk_size=256):
                 chunk_count += 1
-                if chunk_count % 120 == 0:
-                    self._log("Processing chunk")
+
+                if chunk_count % 50 == 0:
+                    self._log(f"Processing chunk: {chunk_count}")
 
                 if not chunk:
                     continue
 
-                buffer += chunk
+                buffer.extend(chunk)
 
-                # try decode safely
-                try:
-                    text = buffer.decode("utf-8")
-                except UnicodeError:
-                    # wait for more bytes if split UTF-8 char
-                    continue
+                while True:
+                    newline = buffer.find(b"\n")
+                    if newline < 0:
+                        break
 
-                lines = text.split("\n")
+                    # Extract one complete line.
+                    line = bytes(buffer[:newline])
 
-                # keep last partial line as bytes
-                buffer = lines.pop().encode("utf-8") if lines else b""
+                    # Keep only the unprocessed bytes.
+                    buffer = bytearray(buffer[newline + 1:])
 
-                for line in lines:
-                    yield line
+                    # ICS uses CRLF line endings.
+                    if line.endswith(b"\r"):
+                        line = line[:-1]
 
-            # flush remaining buffer
+                    yield line.decode("utf-8")
+
+            # Flush any remaining partial line.
             if buffer:
-                try:
-                    yield buffer.decode("utf-8", "ignore")
-                except UnicodeError:
-                    pass
+                line = bytes(buffer)
+                if line.endswith(b"\r"):
+                    line = line[:-1]
+                yield line.decode("utf-8")
 
         finally:
             response.close()

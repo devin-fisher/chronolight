@@ -120,7 +120,7 @@ class ScheduleClassification:
         classifier: "ScheduleClassification",
         now,
         events,
-        ignore_uids=None
+        ignored_uids=None
     ):
         """
         Determine the most important event state.
@@ -129,20 +129,20 @@ class ScheduleClassification:
             classifier: ScheduleClassification instance
             now: current datetime
             events: iterable of events with .start, .end, .uid
-            ignore_uids: uid that should be ignored in clasification
+            ignored_uids: uid that should be ignored in clasification
 
         Returns:
             (state, uid) of highest priority event, or (IDLE, None)
         """
 
         def _classify(event):
-            if event.uid in ignore_uids:
+            if event.uid in ignored_uids:
                 return ScheduleClassification.IDLE
 
             return classifier.classify_event(now, event.start, event.end)
 
-        if ignore_uids is None:
-            ignore_uids = []
+        if ignored_uids is None:
+            ignored_uids = []
 
         if not events:
             return ScheduleClassification.IDLE, None
@@ -152,7 +152,7 @@ class ScheduleClassification:
             key=_classify,
         )
 
-        if most_important_event.uid in ignore_uids:
+        if most_important_event.uid in ignored_uids:
             return ScheduleClassification.IDLE, None
 
         state: int = classifier.classify_event(

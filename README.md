@@ -37,6 +37,9 @@ Early development / experimental
 - WiFi sync intervals optimization
 - Offline caching of calendar data
 
+## Limitations
+1. iCal data is processed in a stream (no database is built) so updates can and will be handled incorrectly
+
 ## License
 
 MIT License

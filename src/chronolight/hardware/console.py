@@ -1,14 +1,14 @@
 import os
 import sys
+import tempfile
 import threading
 import time
 from datetime import datetime, UTC
 
 import requests
 
-from chronolight.core.classification import ScheduleClassification
 from chronolight.core.models import InputTuple
-from chronolight.core.models_utils import state_to_str
+from chronolight.core.models_utils import state_to_str, state_to_json
 from chronolight.hardware.interface import Hardware
 
 
@@ -22,8 +22,25 @@ def _is_key_pressed():
     return False
 
 
+def atomic_write(path, content):
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path))
+
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+
+        os.replace(tmp, path)
+
+    except:
+        os.unlink(tmp)
+        raise
+
+
 class ConsoleHardware(Hardware):
     _last_state = None
+    heartbeat_tick = time.time()
 
     def now(self):
         return datetime.now(UTC)
@@ -34,8 +51,6 @@ class ConsoleHardware(Hardware):
             for line in r.iter_lines():
                 if line:
                     yield line.decode("utf-8")
-
-    heartbeat_tick = time.time()
 
     def local_timezone(self):
         url = "http://ipinfo.io/json"
@@ -80,6 +95,7 @@ class ConsoleHardware(Hardware):
     def render(self, state):
         if state != self._last_state:
             print("[CONSOLE HW] rendered state: " + state_to_str(state))
+            # print("[CONSOLE HW] rendered state: " + state_to_json(state))
+            atomic_write("/tmp/chronolight-state", state_to_json(state))
             self._last_state = state
-
 

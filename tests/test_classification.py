@@ -96,6 +96,8 @@ class TestClassifyEvents(unittest.TestCase):
                 datetime(2025, 2, 4, 18, 0, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 4, 19, 0, 0, tzinfo=timezone.utc),
                 uid="a",
+                summary="",
+                cal_name="Unknown",
             )
         ]
 
@@ -118,11 +120,15 @@ class TestClassifyEvents(unittest.TestCase):
                 datetime(2025, 2, 5, 18, 0, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 5, 19, 0, 0, tzinfo=timezone.utc),
                 uid="future",
+                summary="",
+                cal_name="Unknown",
             ),
             EventTuple(
                 datetime(2025, 2, 4, 18, 10, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 4, 19, 0, 0, tzinfo=timezone.utc),
                 uid="current",
+                summary="",
+                cal_name="Unknown",
             ),
         ]
 
@@ -140,6 +146,8 @@ class TestClassifyEvents(unittest.TestCase):
                 datetime(2025, 2, 4, 0, 0, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 5, 0, 0, 0, tzinfo=timezone.utc),
                 uid="allday",
+                summary="",
+                cal_name="Unknown",
             )
         ]
 
@@ -156,11 +164,16 @@ class TestClassifyEvents(unittest.TestCase):
                 datetime(2025, 2, 6, 18, 0, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 6, 19, 0, 0, tzinfo=timezone.utc),
                 uid="far",
+                summary="",
+                cal_name="Unknown",
+
             ),
             EventTuple(
                 datetime(2025, 2, 4, 18, 20, 0, tzinfo=timezone.utc),
                 datetime(2025, 2, 4, 19, 0, 0, tzinfo=timezone.utc),
                 uid="near",
+                summary="",
+                cal_name="Unknown",
             ),
         ]
 
@@ -241,11 +254,15 @@ class TestClassificationEdgeCases(unittest.TestCase):
                 datetime(2025, 2, 4, 18, 20, tzinfo=timezone.utc),
                 datetime(2025, 2, 4, 19, 0, tzinfo=timezone.utc),
                 uid="a",
+                summary="",
+                cal_name="Unknown",
             ),
             EventTuple(
                 datetime(2025, 2, 4, 18, 20, tzinfo=timezone.utc),
                 datetime(2025, 2, 4, 19, 0, tzinfo=timezone.utc),
                 uid="b",
+                summary="",
+                cal_name="Unknown",
             ),
         ]
 
@@ -300,6 +317,8 @@ class TestClassificationEdgeCases(unittest.TestCase):
                 datetime(2025, 2, 10, 18, i % 60, tzinfo=timezone.utc),
                 datetime(2025, 2, 10, 19, 0, tzinfo=timezone.utc),
                 uid=f"f{i}",
+                summary="",
+                cal_name="Unknown",
             ))
 
         # one near event
@@ -307,6 +326,8 @@ class TestClassificationEdgeCases(unittest.TestCase):
             datetime(2025, 2, 4, 18, 25, tzinfo=timezone.utc),
             datetime(2025, 2, 4, 19, 0, tzinfo=timezone.utc),
             uid="near",
+            summary="",
+            cal_name="Unknown",
         ))
 
         state, uid = ScheduleClassification.classify_events(self.c, now(), events)

@@ -3,11 +3,13 @@ import time
 
 from chronolight.config import get_calendars
 from chronolight.core.classification import ScheduleClassification
+from chronolight.core.ical.deltatime import greater_than_minutes
 from chronolight.core.ics import find_near_events
-from chronolight.core.models import StateTuple
+from chronolight.core.models import StateTuple, IgnoreTuple
 from chronolight.core.models_utils import state_to_str
 
 TICK_RATE = 0.05
+ONE_DAY_OF_MINUTES = 1440
 
 # -------------------------------------------------
 # Runtime framework (no hardware knowledge)
@@ -113,8 +115,11 @@ class Runtime:
                     self.hardware.streamed_calendar(calendar)
                 )
 
+                now = self.hardware.now()
+                print(f"[RUNTIME] Finding near events to {now}")
+
                 near_cal_events = find_near_events(
-                    self.hardware.now(),
+                    now,
                     streaming_cal,
                     self.local_tz
                 )
@@ -145,15 +150,17 @@ class Runtime:
         # Clock sync (delegated)
         self.hardware.sync_clock()
 
+        self.state = self._age_out_ignored_uids(self.state, self.hardware.now())
+
         # Collect input
-        self.state = self._handle_input(self.state)
+        self.state = self._handle_input(self.state, self.hardware.now())
 
         # Classify near event against now (current clock)
         classification, uid = ScheduleClassification.classify_events(
             self.classifier,
             self.hardware.now(),
             self.state.near_events,
-            ignore_uids=self.state.ignored_uids
+            ignored_uids=[item.uid for item in self.state.ignored_uids]
         )
 
         # Set latest classification to current state
@@ -183,15 +190,24 @@ class Runtime:
                 self.update()
                 start = time.monotonic()
 
-    def _handle_input(self, state):
+    def _handle_input(self, state, now):
         input_val = self.hardware.get_input()
         if input_val.ignore:
             print("[RUNTIME] " + str(input_val))
             print(f"[RUNTIME] Input ignoring current event: [{state.uid}]")
             if state.uid is not None:
-                state.ignored_uids.append(state.uid)
+                state.ignored_uids.append(IgnoreTuple(state.uid, now))
                 print("[RUNTIME] Input updated state: " + state_to_str(state))
         return state
+
+    def _age_out_ignored_uids(self, state, now):
+        # Consider changing logic to have the timestamp be a age out time instead of how it works now
+        for t in  (state.ignored_uids or []):
+            if greater_than_minutes(t.timestamp, now, ONE_DAY_OF_MINUTES):
+                print(f"[RUNTIME] Removing aged out ignored event: [{t.uid}]")
+                state.ignored_uids.remove(t)
+        return state
+
 
 # -------------------------------------------------
 # Entry point
