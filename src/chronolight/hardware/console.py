@@ -83,7 +83,7 @@ class ConsoleHardware(Hardware):
                     print("[CONSOLE HW] exiting now")
                     sys.exit(-1) # FIXME don't exit correctly
 
-        t = threading.Thread(target=_check)
+        t = threading.Thread(target=_check, daemon=True)
         t.start()
 
     def network(self):

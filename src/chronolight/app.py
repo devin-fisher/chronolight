@@ -43,21 +43,28 @@ class Runtime:
     # Main Loop
     # -----------------------------
     def run(self):
-        print("[RUNTIME] Initiating...")
-        self.initialize()
+        try:
+            print("[RUNTIME] Initiating...")
+            self.initialize()
 
-        self._running = True
-        print("[RUNTIME] Running")
+            self._running = True
+            print("[RUNTIME] Running")
 
-        while self._running:
-            if self._should_stream():
-                print("[RUNTIME] Starting Calendar Streams")
-                self.stream()
-            else:
-                self.update()
+            while self._running:
+                if self._should_stream():
+                    print("[RUNTIME] Starting Calendar Streams")
+                    self.stream()
+                else:
+                    self.update()
 
-            # Yield
-            time.sleep(TICK_RATE)
+                # Yield
+                time.sleep(TICK_RATE)
+        except KeyboardInterrupt:
+            print("\n[RUNTIME] Shutdown requested")
+
+        finally:
+            self._running = False
+            print("[RUNTIME] Stopped")
 
     # -----------------------------
     # Initialize Hardware (using config)
