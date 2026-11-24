@@ -219,7 +219,7 @@ class Runtime:
 # -------------------------------------------------
 # Entry point
 # -------------------------------------------------
-if __name__ == "__main__":
+def main():
     from chronolight.hardware.console import ConsoleHardware
 
     runtime = Runtime(
@@ -229,3 +229,6 @@ if __name__ == "__main__":
     )
 
     runtime.run()
+
+if __name__ == "__main__":
+    main()
