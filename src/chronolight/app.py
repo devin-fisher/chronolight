@@ -1,3 +1,4 @@
+import signal
 import sys
 import time
 
@@ -65,6 +66,9 @@ class Runtime:
         finally:
             self._running = False
             print("[RUNTIME] Stopped")
+
+    def stop(self):
+        self._running = False
 
     # -----------------------------
     # Initialize Hardware (using config)
@@ -227,6 +231,13 @@ def main():
         heartbeat_timeout=30.0,
         stream_tick=60,
     )
+
+    def shutdown(signum, frame):
+        print(f"Received signal {signum}, shutting down")
+        runtime.stop()
+
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
 
     runtime.run()
 
