@@ -31,6 +31,7 @@ def atomic_write(path, content):
             f.flush()
             os.fsync(f.fileno())
 
+        os.chmod(tmp, 0o644)
         os.replace(tmp, path)
 
     except:
