@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from chronolight.core.classification import ScheduleClassification
 from chronolight.core.models import EventTuple
+from chronolight.core.models import IDLE, UPCOMING, SOON, STARTING, STARTED
 
 
 # ---------------------------------------------------------
@@ -38,7 +39,7 @@ class TestClassifyEvent(unittest.TestCase):
         end = datetime(2025, 2, 5, 0, 0, 0, tzinfo=timezone.utc)
 
         state = self.c.classify_event(now(), start, end)
-        self.assertEqual(state, ScheduleClassification.IDLE)
+        self.assertEqual(state, IDLE)
 
 
     def test_event_started(self):
@@ -47,8 +48,8 @@ class TestClassifyEvent(unittest.TestCase):
 
         state = self.c.classify_event(now(), start, end)
         self.assertIn(state, [
-            ScheduleClassification.STARTED,
-            ScheduleClassification.STARTING
+            STARTED,
+            STARTING
         ])
 
 
@@ -58,9 +59,9 @@ class TestClassifyEvent(unittest.TestCase):
 
         state = self.c.classify_event(now(), start, end)
         self.assertIn(state, [
-            ScheduleClassification.UPCOMING,
-            ScheduleClassification.SOON,
-            ScheduleClassification.IDLE
+            UPCOMING,
+            SOON,
+            IDLE
         ])
 
 
@@ -69,7 +70,7 @@ class TestClassifyEvent(unittest.TestCase):
         end = datetime(2025, 2, 5, 19, 0, 0, tzinfo=timezone.utc)
 
         state = self.c.classify_event(now(), start, end)
-        self.assertEqual(state, ScheduleClassification.IDLE)
+        self.assertEqual(state, IDLE)
 
 
 # ---------------------------------------------------------
@@ -82,11 +83,11 @@ class TestClassifyEvents(unittest.TestCase):
         self.c = ScheduleClassification()
 
     def test_empty_events(self):
-        state, uid = ScheduleClassification.classify_events(
+        state, uid, descr = ScheduleClassification.classify_events(
             self.c, now(), []
         )
 
-        self.assertEqual(state, ScheduleClassification.IDLE)
+        self.assertEqual(state, IDLE)
         self.assertIsNone(uid)
 
 
@@ -101,16 +102,16 @@ class TestClassifyEvents(unittest.TestCase):
             )
         ]
 
-        state, uid = ScheduleClassification.classify_events(
+        state, uid, descr = ScheduleClassification.classify_events(
             self.c, now(), events
         )
 
         self.assertEqual(uid, "a")
         self.assertIn(state, [
-            ScheduleClassification.STARTED,
-            ScheduleClassification.STARTING,
-            ScheduleClassification.SOON,
-            ScheduleClassification.UPCOMING,
+            STARTED,
+            STARTING,
+            SOON,
+            UPCOMING,
         ])
 
 
@@ -132,7 +133,7 @@ class TestClassifyEvents(unittest.TestCase):
             ),
         ]
 
-        state, uid = ScheduleClassification.classify_events(
+        state, uid, descr = ScheduleClassification.classify_events(
             self.c, now(), events
         )
 
@@ -151,11 +152,11 @@ class TestClassifyEvents(unittest.TestCase):
             )
         ]
 
-        state, uid = ScheduleClassification.classify_events(
+        state, uid, descr = ScheduleClassification.classify_events(
             self.c, now(), events
         )
 
-        self.assertEqual(state, ScheduleClassification.IDLE)
+        self.assertEqual(state, IDLE)
 
 
     def test_mixed_events_priority(self):
@@ -177,7 +178,7 @@ class TestClassifyEvents(unittest.TestCase):
             ),
         ]
 
-        state, uid = ScheduleClassification.classify_events(
+        state, uid, descr = ScheduleClassification.classify_events(
             self.c, now(), events
         )
 
@@ -202,8 +203,8 @@ class TestClassificationEdgeCases(unittest.TestCase):
         state = self.c.classify_event(now_dt, start, end)
 
         self.assertIn(state, [
-            ScheduleClassification.STARTED,
-            ScheduleClassification.STARTING,
+            STARTED,
+            STARTING,
         ])
 
 
@@ -215,7 +216,7 @@ class TestClassificationEdgeCases(unittest.TestCase):
 
         state = self.c.classify_event(now_dt, start, end)
 
-        self.assertEqual(state, ScheduleClassification.STARTED)
+        self.assertEqual(state, STARTED)
 
 
     # -------------------------------------------------
@@ -228,7 +229,7 @@ class TestClassificationEdgeCases(unittest.TestCase):
 
         state = self.c.classify_event(now(), start, end)
 
-        self.assertEqual(state, ScheduleClassification.IDLE)
+        self.assertEqual(state, IDLE)
 
 
     def test_end_before_start(self):
@@ -239,8 +240,8 @@ class TestClassificationEdgeCases(unittest.TestCase):
 
         # should fail safely, not crash or misclassify
         self.assertIn(state, [
-            ScheduleClassification.IDLE,
-            ScheduleClassification.UPCOMING,
+            IDLE,
+            UPCOMING,
         ])
 
 
@@ -266,7 +267,7 @@ class TestClassificationEdgeCases(unittest.TestCase):
             ),
         ]
 
-        state, uid = ScheduleClassification.classify_events(self.c, now(), events)
+        state, uid, descr = ScheduleClassification.classify_events(self.c, now(), events)
 
         # deterministic but arbitrary winner allowed
         self.assertIn(uid, ["a", "b"])
@@ -283,8 +284,8 @@ class TestClassificationEdgeCases(unittest.TestCase):
         state = self.c.classify_event(now(), start, end)
 
         self.assertIn(state, [
-            ScheduleClassification.STARTED,
-            ScheduleClassification.STARTING,
+            STARTED,
+            STARTING,
         ])
 
 
@@ -298,9 +299,9 @@ class TestClassificationEdgeCases(unittest.TestCase):
         state = self.c.classify_event(now(), start, start)
 
         self.assertIn(state, [
-            ScheduleClassification.SOON,
-            ScheduleClassification.UPCOMING,
-            ScheduleClassification.IDLE,
+            SOON,
+            UPCOMING,
+            IDLE,
         ])
 
 
@@ -330,7 +331,7 @@ class TestClassificationEdgeCases(unittest.TestCase):
             cal_name="Unknown",
         ))
 
-        state, uid = ScheduleClassification.classify_events(self.c, now(), events)
+        state, uid, descr = ScheduleClassification.classify_events(self.c, now(), events)
 
         self.assertEqual(uid, "near")
 

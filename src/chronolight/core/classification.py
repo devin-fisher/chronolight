@@ -4,6 +4,9 @@ from chronolight.core.ical.deltatime import (
     within,
     is_all_day,
 )
+from chronolight.core.models import IDLE, UPCOMING, SOON, STARTING, STARTED
+from chronolight.core.models_utils import event_to_str
+
 
 class Colors:
     OFF = (0, 0, 0)
@@ -36,14 +39,7 @@ class ScheduleClassification:
     - deterministic testing
     """
 
-    # -------------------------------------------------
-    # State constants
-    # -------------------------------------------------
-    IDLE: int = 0
-    UPCOMING: int = 1
-    SOON: int = 2
-    STARTING: int = 3
-    STARTED: int = 4
+
 
     # -------------------------------------------------
     # Initialization
@@ -58,19 +54,7 @@ class ScheduleClassification:
         self.upcoming_threshold: int = upcoming_threshold
         self.soon_threshold: int = soon_threshold
 
-    # -------------------------------------------------
-    # Utility
-    # -------------------------------------------------
-    @staticmethod
-    def name(value: int) -> str:
-        names: dict[int, str] = {
-            ScheduleClassification.IDLE: "IDLE",
-            ScheduleClassification.UPCOMING: "UPCOMING",
-            ScheduleClassification.SOON: "SOON",
-            ScheduleClassification.STARTING: "STARTING",
-            ScheduleClassification.STARTED: "STARTED",
-        }
-        return names.get(value, "UNKNOWN")
+
 
     # -------------------------------------------------
     # Core classification
@@ -95,22 +79,22 @@ class ScheduleClassification:
 
         # All-day events are ignored for active classification
         if is_all_day(start, end):
-            return ScheduleClassification.IDLE
+            return IDLE
 
         # Currently active event
         if within(now, start, end):
             if within_minutes_after(now, start, self.starting_threshold):
-                return ScheduleClassification.STARTING
-            return ScheduleClassification.STARTED
+                return STARTING
+            return STARTED
 
         # Future windows
         if within_start_minutes(now, start, self.soon_threshold):
-            return ScheduleClassification.SOON
+            return SOON
 
         if within_start_minutes(now, start, self.upcoming_threshold):
-            return ScheduleClassification.UPCOMING
+            return UPCOMING
 
-        return ScheduleClassification.IDLE
+        return IDLE
 
     # -------------------------------------------------
     # Aggregate classification
@@ -137,7 +121,7 @@ class ScheduleClassification:
 
         def _classify(event):
             if event.uid in ignored_uids:
-                return ScheduleClassification.IDLE
+                return IDLE
 
             return classifier.classify_event(now, event.start, event.end)
 
@@ -145,7 +129,7 @@ class ScheduleClassification:
             ignored_uids = []
 
         if not events:
-            return ScheduleClassification.IDLE, None
+            return IDLE, None, None
 
         most_important_event = max(
             events,
@@ -153,7 +137,7 @@ class ScheduleClassification:
         )
 
         if most_important_event.uid in ignored_uids:
-            return ScheduleClassification.IDLE, None
+            return IDLE, None, None
 
         state: int = classifier.classify_event(
             now,
@@ -161,4 +145,4 @@ class ScheduleClassification:
             most_important_event.end,
         )
 
-        return state, most_important_event.uid
+        return state, most_important_event.uid, event_to_str(most_important_event)

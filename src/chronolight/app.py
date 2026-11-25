@@ -6,7 +6,7 @@ from chronolight.config import get_calendars
 from chronolight.core.classification import ScheduleClassification
 from chronolight.core.ical.deltatime import greater_than_minutes
 from chronolight.core.ics import find_near_events
-from chronolight.core.models import StateTuple, IgnoreTuple
+from chronolight.core.models import StateTuple, IgnoreTuple, IDLE
 from chronolight.core.models_utils import state_to_str
 
 TICK_RATE = 0.05
@@ -26,8 +26,9 @@ class Runtime:
         self.local_tz = None
         self.calendars = None
         self.state = StateTuple(
-            ScheduleClassification.IDLE,
-            "",
+            IDLE,
+            None,
+            None,
             [],
             []
         )
@@ -137,8 +138,9 @@ class Runtime:
                 near_events.extend(near_cal_events)
 
             self.state = StateTuple(
-                ScheduleClassification.IDLE,
-                "",
+                IDLE,
+                None,
+                None,
                 self.state.ignored_uids,
                 near_events
             )
@@ -167,7 +169,7 @@ class Runtime:
         self.state = self._handle_input(self.state, self.hardware.now())
 
         # Classify near event against now (current clock)
-        classification, uid = ScheduleClassification.classify_events(
+        classification, uid, descr = ScheduleClassification.classify_events(
             self.classifier,
             self.hardware.now(),
             self.state.near_events,
@@ -178,6 +180,7 @@ class Runtime:
         self.state = StateTuple(
             classification,
             uid,
+            descr,
             self.state.ignored_uids,
             self.state.near_events
         )
